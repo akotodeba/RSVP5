@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shekinah's @18 RSVP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+  font-family:'Montserrat', sans-serif;
+  background:url('https://i.imgur.com/AUfRfam.jpeg') no-repeat center center fixed;
+  background-size:cover;
+  margin:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+.card {
+  background:rgba(255,255,255,0.95);
+  max-width:420px;
+  width:90%;
+  padding:30px;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
+  text-align:center;
+  color:#800000;
+}
+h1 {
+  font-family:'Great Vibes', cursive;
+  font-size:3rem;
+}
+input, select, button {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid #800000;
+}
+button {
+  background:#800000;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+.hidden { display:none; }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1>Shekinah's @18</h1>
+  <p>Enter your full name to RSVP</p>
+
+  <input id="guestName" placeholder="Full Name">
+  <button onclick="searchGuest()">Search</button>
+
+  <p id="message"></p>
+
+  <form id="rsvpForm"
+        method="POST"
+        target="hidden_iframe"
+        action="https://script.google.com/macros/s/AKfycbzwbDy1eXg6veB43nQROi6MDhc28sb8yAP7hxVTgGEclt7s-TY113Te78uNEAjuT0oJXg/exec"
+        class="hidden">
+
+    <div id="membersList"></div>
+    <button type="submit">Confirm RSVP</button>
+  </form>
+
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
+</div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzwbDy1eXg6veB43nQROi6MDhc28sb8yAP7hxVTgGEclt7s-TY113Te78uNEAjuT0oJXg/exec";
+
+function searchGuest() {
+  const name = document.getElementById("guestName").value.trim();
+  const message = document.getElementById("message");
+  const membersList = document.getElementById("membersList");
+  const form = document.getElementById("rsvpForm");
+
+  membersList.innerHTML = "";
+  message.innerText = "";
+  form.classList.add("hidden");
+
+  if (!name) {
+    message.innerText = "Please enter your name.";
+    return;
+  }
+
+  fetch(`${WEB_APP_URL}?name=${encodeURIComponent(name)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.members.length) {
+        message.innerText = "Name not on the guest list.";
+        return;
+      }
+
+      message.innerText = "Confirm attendance:";
+      form.classList.remove("hidden");
+
+      data.members.forEach(m => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <strong>${m.name}</strong>
+          <input type="hidden" name="row[]" value="${m.row}">
+          <select name="attendance[]" required>
+            <option value="">Select</option>
+            <option value="Yes" ${m.attendance==="Yes"?"selected":""}>Yes</option>
+            <option value="No" ${m.attendance==="No"?"selected":""}>No</option>
+          </select>
+        `;
+        membersList.appendChild(div);
+      });
+    });
+}
+</script>
+
+</body>
+</html>
